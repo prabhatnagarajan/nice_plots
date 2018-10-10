@@ -39,7 +39,7 @@ class Curve:
 		num_points = min([len(points) for points in self.ys])
 		min_x = max([min(xs) for xs in self.xs])
 		max_x = min([max(xs) for xs in self.xs])
-		increment = (min_x + max_x)/num_points
+		increment = (max_x - min_x)/num_points
 		x_vals = [point * increment + min_x for point in range(num_points)]
 		if max_x not in x_vals:
 			x_vals.append(max_x)
@@ -51,11 +51,13 @@ class Curve:
 		interp_ys = [interp1d(self.xs[i], self.ys[i]) for i in range(len(self.ys))]
 		x_vals = self.x_axis()
 		mean = [float(sum([f(i) for f in interp_ys]))/float(sample_size) for i in x_vals]
-	
+		return mean
+
 	def ci_error(self):
 		if len(self.ys) <= 1:
 			return [0 for _ in range(len(self.ys[0]))]
-		error = [ci([y[i] for y in self.ys]) for i in range(len(self.ys[0]))]
+		interp_ys = [interp1d(self.xs[i], self.ys[i]) for i in range(len(self.ys))]
+		error = [ci([f(i) for f in interp_ys]) for i in self.x_axis()]
 		return error
 
 class Plot:
@@ -80,10 +82,10 @@ class Plot:
 		axes = plt.gca()
 		for curve in self.curves:
 			mean = np.array(curve.mean())
-			p = plt.plot(np.array(curve.x_axis), mean, label=curve.label)
+			p = plt.plot(np.array(curve.x_axis()), mean, label=curve.label)
 			error = np.array(curve.ci_error())
 			if curve.plot_ci:
-				plt.fill_between(np.array(curve.x_axis), mean - error, mean + error,
+				plt.fill_between(np.array(curve.x_axis()), mean - error, mean + error,
 				 alpha=0.5, edgecolor=p[0].get_color(),
 				facecolor=p[0].get_color())
 		# axes.set_ylim([0.0, 4.1])
