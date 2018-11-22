@@ -55,7 +55,7 @@ class Curve:
 
 	def ci_error(self):
 		if len(self.ys) <= 1:
-			return [0 for _ in range(len(self.ys[0]))]
+			return [0 for _ in range(len(self.x_axis()))]
 		interp_ys = [interp1d(self.xs[i], self.ys[i]) for i in range(len(self.ys))]
 		error = [ci([f(i) for f in interp_ys]) for i in self.x_axis()]
 		return error
